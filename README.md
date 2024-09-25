@@ -44,3 +44,80 @@ After the steps of cleaning and preprocessing, started the analysis to understan
 Sales Department: Salaries are within a good range and has proportionalities as well but need to increase the hiring numbers as well to reduce the impact on Attrition.
 5. The Work environment seems passive or not engaging which added to the reason of high attrition within the first year of joining. This again showed an impact along with indicators such as 'Job Involvement', 'Work-Life Balance', 'Job Satisfaction' as well.
 6. Post the employees reaching average tenure of 20-25 years there is a sharp decline in most of the above indicatos as well. Even with Performance Rating being good, there are less indications of improvement so, providing opportunities/resources for upskilling, promotion, etc., can enhance employee satisfaction during these middle years.
+
+
+# Prediction Modelling:
+## Feature Engineering:
+Post the insight generation and recommendations, attempted to predict if an employee is more favored to leave the company or not.
+
+- Gender: Male
+- Job roles: Laboratory technician, sales executive, research scientist, research director
+- Education Fields: Medical, Life Sciences
+- Employees that have to Travel Frequently
+- Employees that are Not Married
+
+```python
+
+X= final_df.drop(['Attrition_Yes'], axis=1)
+y = final_df['Attrition_Yes']
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.10, random_state=101)
+scaler = StandardScaler()
+scaled_X_train = scaler.fit_transform(X_train)
+scaled_X_test = scaler.transform(X_test)
+log_model = LogisticRegression()
+log_model.fit(scaled_X_train, y_train)
+y_pred = log_model.predict(scaled_X_test)
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import plot_confusion_matrix
+plot_confusion_matrix(log_model, scaled_X_test, y_test);
+print(classification_report(y_test, y_pred))
+```
+* When we look at the above metrices, we can confirm that the dataset is Imbalanced causing F-ve to be closer to T-ve and the metrices to be on the lower end.
+* We can solve this by oversampling the minority_class to balance the dataset.
+
+```python
+from sklearn.utils import resample
+#create two different dataframe of majority and minority class 
+df_majority = final_df[(final_df['Attrition_Yes']==0)] 
+df_minority = final_df[(final_df['Attrition_Yes']==1)] 
+# upsample minority class
+df_minority_upsampled = resample(df_minority, 
+                                 replace=True,    # sample with replacement
+                                 n_samples= 3699, # to match majority class
+                                 random_state=42)  # reproducible results
+# Combine majority class with upsampled minority class
+df_upsampled = pd.concat([df_minority_upsampled, df_majority])
+
+X=df_upsampled.drop(['Attrition_Yes'], axis=1)
+y=df_upsampled['Attrition_Yes']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.10, random_state=101)
+
+scaled_X_train = scaler.fit_transform(X_train)
+scaled_X_test = scaler.transform(X_test)
+log_model = LogisticRegression(solver='saga', multi_class = 'auto', max_iter=50000)
+
+penalty = ['l1', 'l2', 'elasticnet']
+l1_ratio = np.linspace(0,1,20)
+C = np.logspace(0,1,10)
+
+param_grid = {'penalty': penalty,
+             'l1_ratio': l1_ratio,
+             'C': C}
+
+from sklearn.model_selection import GridSearchCV
+
+grid_model = GridSearchCV(log_model, param_grid=param_grid)
+
+grid_model.fit(scaled_X_train, y_train)
+y_pred = grid_model.predict(scaled_X_test)
+
+plot_confusion_matrix(grid_model, scaled_X_test, y_test);
+
+print(classification_report(y_test, y_pred))
+```
+
+_After Resampling, although the overall accuracy score has decreased, the F1 score and recall along with precision have significantly imporoved for predicting the Attrition Yes part for the data. Considering this although complexity has increased, model would suffice this dataset._
