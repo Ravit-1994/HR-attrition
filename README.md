@@ -73,7 +73,18 @@ y_pred = log_model.predict(scaled_X_test)
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.metrics import plot_confusion_matrix
 plot_confusion_matrix(log_model, scaled_X_test, y_test);
+```
+![confusion-1](https://github.com/user-attachments/assets/9faa4748-cc8f-4e7d-8fb7-14030c764f9c)
+```python
 print(classification_report(y_test, y_pred))
+              precision    recall  f1-score   support
+
+           0       0.86      0.98      0.92       371
+           1       0.60      0.17      0.27        70
+
+    accuracy                           0.85       441
+   macro avg       0.73      0.57      0.59       441
+weighted avg       0.82      0.85      0.81       441
 ```
 * When we look at the above metrices, we can confirm that the dataset is Imbalanced causing F-ve to be closer to T-ve and the metrices to be on the lower end.
 * We can solve this by oversampling the minority_class to balance the dataset.
@@ -116,8 +127,22 @@ grid_model.fit(scaled_X_train, y_train)
 y_pred = grid_model.predict(scaled_X_test)
 
 plot_confusion_matrix(grid_model, scaled_X_test, y_test);
-
+```
+![confusion-2](https://github.com/user-attachments/assets/a6cdcc5b-eb0c-4f4a-b7b5-ce9e66f345da)
+```python
 print(classification_report(y_test, y_pred))
+
+              precision    recall  f1-score   support
+
+           0       0.78      0.73      0.75       387
+           1       0.72      0.78      0.75       353
+
+    accuracy                           0.75       740
+   macro avg       0.75      0.75      0.75       740
+weighted avg       0.75      0.75      0.75       740
 ```
 
-_After Resampling, although the overall accuracy score has decreased, the F1 score and recall along with precision have significantly imporoved for predicting the Attrition Yes part for the data. Considering this although complexity has increased, model would suffice this dataset._
+_After Resampling, although the overall accuracy score has decreased, the F1 score and recall along with precision have significantly imporoved for predicting the Attrition Yes part for the data. Considering this although complexity has increased, model would suffice this dataset._ 
+
+
+
